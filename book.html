@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Book store</title>
+    <!-- VueJS -->
+    <script src="https://unpkg.com/vue@3"></script>
+
+    <!-- CSS only -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet"
+        integrity="sha384-1BmE4kWBq78iYhFldvKuhfTAU6auU8tT94WrHftjDbrCEXSU1oBoqyl2QvZ6jIW3" crossorigin="anonymous">
+
+    <style>
+        .card {
+            box-shadow: 2px 2px 2px lightgray;
+            background-image: linear-gradient(to bottom, white 70%, lightgray);
+        }
+
+        .card-img-top {
+            width: 100%;
+            height: 20vh;
+        }
+
+        .card:hover {
+            transform: scale(1.1);
+            background-image: linear-gradient(to bottom, lightgray 70%, white);
+            transition: all 1s;
+        }
+    </style>
+
+</head>
+
+<body>
+    <div class="container mt-2" id="ourApp">
+        <!-- nav -->
+        <div class="row bg-dark justify-content-between align-items-baseline">
+            <a href="#" @click.prevent="iswishvisible=false" style="color: brown; text-decoration: none;">Books</a>
+            <div class="d-flex align-items-baseline">
+                <p class="text-light"><span>{{wish.count}}</span> items with total price
+                    <span>{{formatter(getTotalPrice())}}</span>
+                </p>
+                <button @click="iswishvisible=true" class="btn btn-warning m-1">Wishlights</button>
+            </div>
+        </div>
+        <!-- Books shelf -->
+        <div class="row" v-if="iswishvisible==false" style="margin-left:5.8rem">
+            <!-- <ul v-for="book in books">
+                <li :title="book.Author">
+                    {{book.Name}}
+                </li>
+            </ul> -->
+            <div class="card p-1" v-for="book in books" style="width: 23rem; margin:0.2rem;">
+                <img :src="book.Image" :title="book.Author" class="card-img-top img-fluid mh-10" />
+                <div class="row">
+                    <div class="col">
+                        <span class="text-left mt-1 bg-info text-light rounded">Category</span>
+                        <p>{{book.Category}}</p>
+                    </div>
+                    <div class="col">
+                        <span class="text-left mt-1 bg-info text-light rounded">Author</span>
+                        <p> {{book.Author}}</p>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col">
+                        <span class="text-left mt-1 bg-info text-light rounded">Number of Pages</span>
+                        <p>{{book.NumberOP}}</p>
+                    </div>
+                    <div class="col">
+                        <span class="text-left mt-1 bg-info text-light rounded">Price</span>
+                        <p>{{book.Price}}</p>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col">
+                        <span class="text-left mt-1 bg-info text-light rounded">ISBN</span>
+                        <p>{{book.ISBN}}</p>
+                    </div>
+                    <div class="col">
+                        <button class="btn btn-dark" @click="addToWish(book)">ADD TO LIST</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="row" v-if="iswishvisible==true">
+            <h3 class="text-danger text-center mt-4" v-if="wish.items.length==0">Empty Wishlight</h3>
+            <table class="table table-striped text-center table-responsive" v-if="wish.items.length > 0">
+                <!-- v-else not working -->
+                <thread>
+                    <tr>
+                        <th>ISBN</th>
+                        <th>Name</th>
+                        <th>Price</th>
+                        <th>Remove</th>
+                    </tr>
+                </thread>
+                <tbody>
+                    <tr v-for="item in wish.items">
+                        <td>{{item.book.ISBN}}</td>
+                        <td>{{item.book.Name}}</td>
+                        <td>{{item.book.Price}}</td>
+                        <td><button @click="remove(item.book.ISBN)" class="btn-danger">Remove</button></td>
+                    </tr>
+                </tbody>
+                <tfoot>
+                    <tr>
+                        <th colspan="4">Total</th>
+                        <th colspan="2">{{formatter(getTotalPrice())}}</th>
+                    </tr>
+                    <tr>
+                        <th colspan="4">Tax (40%)</th>
+                        <th colspan="2">{{formatter(getTotalPrice() * 0.4)}}</th>
+                    </tr>
+                    <tr>
+                        <th colspan="4">Grand Total</th>
+                        <th colspan="2">{{formatter(getTotalPrice() * 0.6)}}</th>
+                    </tr>
+                </tfoot>
+            </table>
+        </div>
+    </div>
+
+
+    <script src="Books.js"></script>
+    <script>
+        const OurApp = Vue.createApp({
+            data: () => ({
+                books: books,
+                iswishvisible: false,
+                wish: {
+                    items: [],
+                    count: 0
+                }
+            }),
+            methods: {
+                formatter(e) {
+                    let to = Intl.NumberFormat("ar-SA", {
+                        style: 'currency',
+                        currency: 'SAR',
+                        minimumFractionDigits: 0
+                    });
+                    return to.format(e);
+                },
+                getTotalPrice() {
+                    let total = 0;
+                    for (let i = 0; i < this.wish.items.length; i++) {
+                        total += this.wish.items[i].book.Price;
+                    }
+                    return total;
+                },
+                addToWish(book) {
+                    let flag = 0;
+                    for (let i = 0; i < this.wish.items.length; i++) {
+                        if (this.wish.items[i].book.ISBN == book.ISBN) {
+                            flag = 1;
+                            break;
+                        }
+                        else {
+                            flag = 0;
+                        }
+                    }
+                    if (flag == 0) {
+                        this.wish.items.push({
+                            book: book
+                        });
+                        this.wish.count++;
+                    }
+                },
+                remove(bookISBN) {
+                    for (let i = 0; i < this.wish.items.length; i++) {
+                        if (this.wish.items[i].book.ISBN == bookISBN) {
+                            this.wish.items.splice(i, 1);
+                            this.wish.count--;
+                        }
+                    }
+                },
+            }
+        });
+        OurApp.mount("#ourApp");
+    </script>
+
+    <!-- JavaScript Bundle with Popper -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"
+        integrity="sha384-ka7Sk0Gln4gmtz2MlQnikT1wXgYsOg+OMhuP+IlRH9sENBO0LRn5q+8nbTov4+1p"
+        crossorigin="anonymous"></script>
+
+</body>
+
+</html>
